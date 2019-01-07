@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Containers without Containers  <mark.griffin@linux.com>
+# https://github.com/nerdgeneration/containerless
+
+set -e
+
+# CentOS version dependent stuff lives in a library
+source /usr/local/bin/container-functions
+
+[[ "$2" == "" || "$3" != "" ]] && {
+    echo "Syntax: container-create name size-mb" >&2
+    exit
+}
+
+cnt_name="$1"
+cnt_size="$2"
+
+cnt_generic_setup() {
+	local cnt_mnt="$1"
+	
+	# Install the CentOS release package
+	downloads="$(mktemp -d)"
+	yumdownloader --destdir="$downloads" centos-release
+	rpm --root="$cnt_mnt" --nodeps --install "$downloads/centos-release"*
+	rm -r "$downloads"
+	
+	# Copy the certificates and config from the host
+	cp --archive /etc/resolv.conf "$cnt_mnt/etc/"
+	cp --archive /etc/pki "$cnt_mnt/etc/"
+
+	# Add the special mounts
+	mkdir -p "$cnt_mnt/"{dev,proc,sys,root}
+	mount --bind   /dev   "$cnt_mnt/dev"
+	mount -t proc  procfs "$cnt_mnt/proc"
+	mount -t sysfs sysfs  "$cnt_mnt/sys"
+
+	# Add skeleton deploy/undeploy scripts
+	echo -e "#!/bin/bash\n\n# This script is executed when your container is deployed" >"$cnt_mnt/deploy"
+	echo -e "#!/bin/bash\n\n# This script is executed when your container is undeployed" >"$cnt_mnt/undeploy"
+	
+	# Add a prompt
+	echo "PS1=\"[$cnt_name base] \\w \\\$ \"" >>"$cnt_mnt/root/.bashrc"
+}
+
+cnt_generic_setup_done() {
+	local cnt_mnt="$1"
+
+	# Remove the special mounts
+	umount "$cnt_mnt/dev"
+	umount "$cnt_mnt/proc"
+	umount "$cnt_mnt/sys"
+}
+
+cnt_generic_welcome() {
+	echo " ***************************************************************"
+	echo " * We're now putting you in a shell inside your container...   *"
+	echo " * Use yum to install dependencies, set your configuration,    *"
+	echo " * update 'deploy' and 'undeploy' scripts in / to change how   *"
+	echo " * the container behaves when (un)deployed.                    *"
+	echo " * When you're done, just 'exit'.                              *"
+	echo " ***************************************************************"
+}
+
+# Setup the container as appropriate for the host OS
+cnt_create_img "$cnt_name" "$cnt_size"

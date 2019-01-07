@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Containers without Containers  <mark.griffin@linux.com>
+# https://github.com/nerdgeneration/containerless
+
+set -e
+
+
+[[ "$(whoami)" != "root" ]] && {
+    echo "Requires root..."
+    exit
+}
+
+# Work from the script folder
+cd "$(dirname "$0")"
+
+# Disable selinux for simplicity
+setenforce 0
+sed --in-place 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+
+# Add the EPEL repo and update the system
+$ yum clean all
+$ yum makecache
+yum update --assumeyes
+yum install --assumeyes yum-utils
+
+# Everything lives in /var/containers
+mkdir -p /var/containers
+
+# ... except the scripts, which live in /usr/local/bin
+mkdir -p /usr/local/bin
+cp scripts/container-{create,destroy,deploy} /usr/local/bin/
+chmod +x /usr/local/bin/container-{create,destroy,deploy}
+
+# Do OS version specific things
+grep --quiet "CentOS .* 6" /etc/centos-release && centos6/install
+grep --quiet "CentOS .* 7" /etc/centos-release && centos7/install
+
+echo " ***************************************************************"
+echo " * The scripts have been installed to /usr/local/bin           *"
+echo " *   - container-create  base-image-name size-mb               *"
+echo " *   - container-destroy base-image-name                       *"
+echo " *   - container-deploy  base-image-name deploy-name on|off    *"
+echo " ***************************************************************"

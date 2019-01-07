@@ -1,0 +1,39 @@
+# Functions for CentOS 7
+
+# Containers without Containers  <mark.griffin@linux.com>
+# https://github.com/nerdgeneration/containerless
+
+cnt_create_img() {
+	local cnt_name="$1"
+    local cnt_folder="/var/containers/$cnt_name"
+    
+	mkdir -p "$cnt_folder"
+	local cnt_mnt="$cnt_folder/_base_img_rw"
+    btrfs subvol create "$cnt_mnt"
+    # You could use btrfs quotas here to implement "size"
+
+    cnt_generic_setup "$cnt_mnt"
+	yum --installroot="$cnt_mnt" --releasever=7 --assumeyes install yum
+	chroot "$cnt_mnt" yum --releasever=7 --assumeyes install yum centos-release
+	chroot "$cnt_mnt" yum --assumeyes install @core @base redhat-lsb-core
+	systemd-nspawn --directory="$cnt_mnt" "$cnt_mnt/bin/bash"
+	cnt_generic_setup_done
+	
+	# Snapshot the RW copy to a RO copy, then delete the RW copy
+	btrfs subvol snapshot -r "$cnt_mnt" "$cnt_folder/_base_img" && \
+		btrfs subvol delete "$cnt_mnt"
+}
+
+cnt_deploy() {
+	local cnt_name="$1"
+	local cnt_deploy_name="$2"
+	
+	# TODO snapshot if necessary, systemd-nspawn
+}
+
+cnt_undeploy() {
+	local cnt_name="$1"
+	local cnt_deploy_name="$2"
+	
+	# TODO use systemd to poweroff the container
+}

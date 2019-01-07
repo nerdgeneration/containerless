@@ -1,0 +1,56 @@
+# Functions for CentOS 6
+
+# Containers without Containers  <mark.griffin@linux.com>
+# https://github.com/nerdgeneration/containerless
+
+_cnt_mount() {
+	local cnt_name="$1"
+	local mnt_opts="$2"
+    local cnt_folder="/var/containers/$cnt_name"
+		
+	grep --quiet "$cnt_folder/base_mnt" /etc/mtab || \
+		mount -o "loop,$mnt_opts" "$cnt_folder/_base_img" "$cnt_folder/_base_mnt"
+}
+
+cnt_create_img() {
+	local cnt_name="$1"
+	local cnt_size="$2"
+	
+    local cnt_folder="/var/containers/$cnt_name"
+    mkdir -p "$cnt_folder/"{,_base_mnt}
+	
+	# Create a sparse image
+	dd if=/dev/zero of="$cnt_folder/_base_img" bs=1M count=0 seek="$cnt_size"
+	
+	# Find a loop device for the image and create a filesystem on it
+	local loop="$(losetup --find --show "$cnt_folder/_base_img")"
+	mkfs.ext4 -L "$cnt_name" "$loop"
+	# Now we have a filesystem, we can mount it normally...
+	losetup --detach "$loop"
+	_cnt_mount "$cnt_name" "rw"
+
+	local cnt_mnt="$cnt_folder/_base_mnt"
+	cnt_generic_setup "$cnt_mnt"
+	yum --installroot="$cnt_mnt" --releasever=6 --assumeyes install yum
+	chroot "$cnt_mnt"
+	cnt_generic_setup_done "$cnt_mnt"
+}
+
+cnt_deploy() {
+	local cnt_name="$1"
+	local cnt_deploy_name="$2"
+    local cnt_folder="/var/containers/$cnt_name"
+	
+	# Setup the working folders if they don't exist
+	mkdir -p "$cnt_folder/${cnt_deploy_name}_img"
+	mkdir -p "$cnt_folder/${cnt_deploy_name}_mnt"
+	
+	# TODO Mount base if needed, union base_mnt + img -> mnt, chroot
+}
+
+cnt_undeploy() {
+	local cnt_name="$1"
+	local cnt_deploy_name="$2"
+	
+	# TODO Kill processes, umount mnt
+}

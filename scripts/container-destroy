@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Containers without Containers  <mark.griffin@linux.com>
+# https://github.com/nerdgeneration/containerless
+
+set -e
+
+# CentOS version dependent stuff lives in a library
+source /usr/local/bin/container-functions
+
+cnt_name="$1"
+
+# read -p "This will destroy the '$cnt_name' image and all deployments. Are you sure (yes|no)?" confirm
+# [[ "$confirm" != "yes" ]] && exit
+
+# Kill processes inside the containers
+# Kill the deployments
+# Kill base image
+
+echo "This hasn't been implemented yet. Restart and rm -rf /var/containers/$cnt_name"
