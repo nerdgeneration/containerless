@@ -7,6 +7,6 @@ set -e
 
 grep -q "/var/containers btrfs" /etc/mtab || \
     echo "Please create a btrfs filesystem at /var/containers - these tools will not work until this is done!"
-	
+    
 # Install CentOS 7 functions
 cp centos7/functions /usr/local/bin/container-functions
