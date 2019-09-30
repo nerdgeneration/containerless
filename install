@@ -5,7 +5,6 @@
 
 set -e
 
-
 [[ "$(whoami)" != "root" ]] && {
     echo "Requires root..."
     exit
@@ -19,8 +18,8 @@ setenforce 0
 sed --in-place 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
 
 # Add the EPEL repo and update the system
-$ yum clean all
-$ yum makecache
+yum clean all
+yum makecache
 yum update --assumeyes
 yum install --assumeyes yum-utils
 
@@ -35,6 +34,7 @@ chmod +x /usr/local/bin/container-{create,destroy,deploy}
 # Do OS version specific things
 grep --quiet "CentOS .* 6" /etc/centos-release && centos6/install
 grep --quiet "CentOS .* 7" /etc/centos-release && centos7/install
+grep --quiet "CentOS .* 8" /etc/centos-release && centos8/install
 
 echo " ***************************************************************"
 echo " * The scripts have been installed to /usr/local/bin           *"

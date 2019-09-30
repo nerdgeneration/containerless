@@ -2,7 +2,9 @@
 
 A silly demonstration of faking containers in Linux.
 
-This isn't even close to complete, but some idiot decided to run a tech talk at work, and didn't give himself enough time to set it up, so...
+This isn't even close to complete, but some idiot decided to run a tech talk at work*, and didn't give himself enough time to set it up, so...
+
+(* see Containers without Containers.odp)
 
 
 ## Summary
@@ -19,6 +21,8 @@ If you want to use these scripts, they are designed to be used on a new CentOS 6
 **CentOS 6**: This uses chroot containerisation. Simply running the ./install script should do.
 
 **CentOS 7**: This uses systemd containerisation. The /var/containers folder must be a btrfs mount (which you must do yourself), then run the ./install script.
+
+**CentOS 8**: This is currently a symlink to CentOS 6 because 8 doesn't have btrfs support.
 
 The install script disables SELinux, installs some packages, does an update and pushes the scripts to /usr/local/bin.
 

@@ -1,4 +1,5 @@
 # Functions for CentOS 6
+# shellcheck shell=bash
 
 # Containers without Containers  <mark.griffin@linux.com>
 # https://github.com/nerdgeneration/containerless
@@ -47,7 +48,7 @@ cnt_deploy() {
     mkdir -p "$cnt_folder/${cnt_deploy_name}_mnt"
     
 	_cnt_mount "$cnt_name" ro
-	funionfs -o dirs="$cnt_folder/_base_mnt"=RO:"$cnt_folder/${cnt_deploy_name}_img" -o allow_other NONE "$cnt_folder/${cnt_deploy_name}_mnt"
+	funionfs -o "dirs=$cnt_folder/_base_mnt=RO:$cnt_folder/${cnt_deploy_name}_img" -o allow_other NONE "$cnt_folder/${cnt_deploy_name}_mnt"
 	chroot "$cnt_folder/${cnt_deploy_name}_mnt"
 }
 

@@ -1,4 +1,5 @@
 # Functions for CentOS 7
+# shellcheck shell=bash
 
 # Containers without Containers  <mark.griffin@linux.com>
 # https://github.com/nerdgeneration/containerless
